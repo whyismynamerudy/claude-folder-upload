@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Claude Folder Upload Settings</title>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background-color: #272623;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      width: 400px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      background-color: #393937;
+      border: 1px solid #4a4a4a;
+      color: #f0f0f0;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #a05a3c;
+      color: #f0f0f0;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #8b4426;
+    }
+    .regex-list {
+      margin-top: 10px;
+    }
+    .regex-item {
+      background-color: #393937;
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .remove-btn {
+      background-color: #dc3545;
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>File Exclusion Settings</h2>
+    <div class="section">
+      <div class="input-group">
+        <label>Add Regex Pattern to Exclude:</label>
+        <input type="text" id="regexInput" placeholder="e.g., \.git|node_modules|\.DS_Store">
+      </div>
+      <button id="addRegex">Add Pattern</button>
+      <div id="regexList" class="regex-list"></div>
+    </div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -16,5 +16,12 @@
         "js": ["utils.js", "content.js"],
         "run_at": "document_end"
       }
-    ]
+    ],
+    "action": {
+      "default_popup": "options.html"
+    },
+    "options_ui": {
+      "page": "options.html",
+      "open_in_tab": false
+    }
 }

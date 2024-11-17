@@ -6,6 +6,99 @@ function isProjectPage() {
   return window.location.pathname.includes('/project/');
 }
 
+function showConfirmationDialog(message, onConfirm, onCancel) {
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    overlay.style.zIndex = "10000";
+
+    const dialogBox = document.createElement("div");
+    dialogBox.style.position = "fixed";
+    dialogBox.style.top = "50%";
+    dialogBox.style.left = "50%";
+    dialogBox.style.transform = "translate(-50%, -50%)";
+    dialogBox.style.backgroundColor = "#2e2e2b";
+    dialogBox.style.color = "#f0f0f0";
+    dialogBox.style.padding = "20px";
+    dialogBox.style.borderRadius = "8px";
+    dialogBox.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+    dialogBox.style.zIndex = "10001";
+    dialogBox.style.width = "300px";
+    dialogBox.style.textAlign = "center";
+    dialogBox.style.fontFamily = '"Be Vietnam Pro", sans-serif';
+
+    const messageElement = document.createElement("p");
+    messageElement.textContent = message;
+    messageElement.style.marginBottom = "20px";
+    messageElement.style.fontSize = "16px";
+    messageElement.style.fontWeight = "500";
+
+    const buttonContainer = document.createElement("div");
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.justifyContent = "space-around";
+
+    const confirmButton = document.createElement("button");
+    confirmButton.textContent = "Confirm";
+    confirmButton.style.padding = "8px 16px";
+    confirmButton.style.backgroundColor = "#a05a3c";
+    confirmButton.style.color = "#f0f0f0";
+    confirmButton.style.border = "none";
+    confirmButton.style.borderRadius = "4px";
+    confirmButton.style.cursor = "pointer";
+    confirmButton.style.fontSize = "14px";
+    confirmButton.style.fontWeight = "500";
+    confirmButton.style.transition = "background-color 0.2s";
+
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel";
+    cancelButton.style.padding = "8px 16px";
+    cancelButton.style.backgroundColor = "#4a4a47";
+    cancelButton.style.color = "#f0f0f0";
+    cancelButton.style.border = "none";
+    cancelButton.style.borderRadius = "4px";
+    cancelButton.style.cursor = "pointer";
+    cancelButton.style.fontSize = "14px";
+    cancelButton.style.fontWeight = "500";
+    cancelButton.style.transition = "background-color 0.2s";
+
+    confirmButton.onmouseover = () => {
+        confirmButton.style.backgroundColor = "#8b4426";
+    };
+    confirmButton.onmouseout = () => {
+        confirmButton.style.backgroundColor = "#a05a3c";
+    };
+
+    cancelButton.onmouseover = () => {
+        cancelButton.style.backgroundColor = "#393937";
+    };
+    cancelButton.onmouseout = () => {
+        cancelButton.style.backgroundColor = "#4a4a47";
+    };
+
+    confirmButton.onclick = () => {
+        document.body.removeChild(overlay);
+        onConfirm();
+    };
+
+    cancelButton.onclick = () => {
+        document.body.removeChild(overlay);
+        if (onCancel) onCancel();
+    };
+
+    buttonContainer.appendChild(confirmButton);
+    buttonContainer.appendChild(cancelButton);
+
+    dialogBox.appendChild(messageElement);
+    dialogBox.appendChild(buttonContainer);
+    overlay.appendChild(dialogBox);
+
+    document.body.appendChild(overlay);
+}
+
 // Function to get organization ID from Claude's API
 async function fetchOrganizationId() {
   try {
@@ -89,6 +182,26 @@ async function uploadFile(file, projectId, relativePath) {
       reader.readAsText(file);
     });
   }
+
+
+  async function storeFileData(projectId, fileName, filePath) {
+    const key = `project_${projectId}_files`;
+    const storedData = await chrome.storage.local.get(key);
+    const filesData = storedData[key] || {};
+    
+    filesData[fileName] = {
+        filePath: filePath,
+        timestamp: new Date().toISOString()
+    };
+    
+    await chrome.storage.local.set({ [key]: filesData });
+}
+
+async function getProjectFiles(projectId) {
+    const key = `project_${projectId}_files`;
+    const storedData = await chrome.storage.local.get(key);
+    return storedData[key] || {};
+}
 
 // Function to create upload progress UI
 function createProgressUI() {
