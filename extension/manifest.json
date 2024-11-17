@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Claude Folder Upload Helper",
+    "version": "1.0.0",
+    "description": "Upload folders to Claude while maintaining structure",
+    "permissions": [
+      "storage",
+      "activeTab"
+    ],
+    "host_permissions": [
+      "https://claude.ai/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["https://claude.ai/*"],
+        "js": ["utils.js", "content.js"],
+        "run_at": "document_end"
+      }
+    ]
+}

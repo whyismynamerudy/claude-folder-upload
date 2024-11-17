@@ -1,0 +1,68 @@
+/* styles.css */
+.claude-folder-panel {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin: 16px 0;
+    padding: 16px;
+    background: #ffffff;
+    max-width: 400px;
+  }
+  
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .panel-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+  
+  #selectFolder {
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .file-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .file-entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .file-entry.pending {
+    background: #fff9c4;
+  }
+  
+  .file-entry.uploaded {
+    background: #c8e6c9;
+  }
+  
+  .file-path {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .file-status {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .upload-status {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #666;
+  }
