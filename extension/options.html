@@ -23,6 +23,7 @@
     input[type="text"] {
       width: 100%;
       padding: 8px;
+      margin-top: 8px;
       background-color: #393937;
       border: 1px solid #4a4a4a;
       color: #f0f0f0;
@@ -55,6 +56,21 @@
       background-color: #dc3545;
       padding: 4px 8px;
     }
+    .remove-btn:hover {
+      background-color: #c82333;
+    }
+    .error-message {
+      color: #dc3545;
+      font-size: 0.9em;
+      margin-top: 5px;
+      min-height: 20px;
+    }
+    .tooltip {
+      display: inline-block;
+      margin-left: 8px;
+      color: #6c757d;
+      cursor: help;
+    }
   </style>
 </head>
 <body>
@@ -63,7 +79,8 @@
     <div class="section">
       <div class="input-group">
         <label>Add Regex Pattern to Exclude:</label>
-        <input type="text" id="regexInput" placeholder="e.g., \.git|node_modules|\.DS_Store">
+        <input type="text" id="regexInput" placeholder="Add Regrex Pattern">
+        <div class="error-message" id="errorMessage"></div>
       </div>
       <button id="addRegex">Add Pattern</button>
       <div id="regexList" class="regex-list"></div>

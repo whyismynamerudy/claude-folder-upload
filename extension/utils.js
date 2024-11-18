@@ -1,7 +1,5 @@
-// utils.js
 let organizationId = null;
 
-// Helper function to check if we're on a project page
 function isProjectPage() {
   return window.location.pathname.includes('/project/');
 }
@@ -99,7 +97,6 @@ function showConfirmationDialog(message, onConfirm, onCancel) {
     document.body.appendChild(overlay);
 }
 
-// Function to get organization ID from Claude's API
 async function fetchOrganizationId() {
   try {
     const response = await fetch('https://claude.ai/api/organizations', {
@@ -128,14 +125,8 @@ async function fetchOrganizationId() {
   }
 }
 
-// Add function to refresh UI after upload
-// utils.js
-
 async function refreshUIAfterUpload() {
-    // Short delay to ensure all API operations are complete
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Reload the page
     window.location.reload();
   }
 
@@ -150,7 +141,6 @@ async function uploadFile(file, projectId, relativePath) {
       const reader = new FileReader();
       reader.onload = async () => {
         try {
-          // Read as text instead of base64
           const content = reader.result;
           
           const response = await fetch(apiUrl, {
@@ -178,7 +168,6 @@ async function uploadFile(file, projectId, relativePath) {
       };
   
       reader.onerror = () => reject(new Error('Failed to read file'));
-      // Read as text instead of DataURL
       reader.readAsText(file);
     });
   }
@@ -203,7 +192,6 @@ async function getProjectFiles(projectId) {
     return storedData[key] || {};
 }
 
-// Function to create upload progress UI
 function createProgressUI() {
   const container = document.createElement('div');
   container.id = 'folder-upload-progress';

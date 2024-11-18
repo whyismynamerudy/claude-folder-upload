@@ -1,10 +1,8 @@
-// content.js
 async function initFolderUpload() {
     if (!isProjectPage()) return;
   
     const projectId = window.location.pathname.split('/').pop();
     
-    // Create container for buttons
     const container = document.createElement('div');
     container.style.cssText = `
         position: fixed;
@@ -15,7 +13,6 @@ async function initFolderUpload() {
         gap: 8px;
     `;
 
-    // Create the upload button
     const uploadButton = document.createElement('button');
     uploadButton.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -40,7 +37,6 @@ async function initFolderUpload() {
       transition: background-color 0.2s;
     `;
 
-    // Create remove all button
     const removeButton = document.createElement('button');
     removeButton.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -64,14 +60,12 @@ async function initFolderUpload() {
       transition: background-color 0.2s;
     `;
 
-    // Create file input
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.webkitdirectory = true;
     fileInput.multiple = true;
     fileInput.style.display = 'none';
   
-    // Button hover states
     uploadButton.addEventListener('mouseover', () => {
         uploadButton.style.backgroundColor = '#8b4426';
     });
@@ -86,11 +80,14 @@ async function initFolderUpload() {
         removeButton.style.backgroundColor = '#dc3545';
     });
 
-    // Handle folder upload
     uploadButton.onclick = () => fileInput.click();
     fileInput.addEventListener('change', async (event) => {
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
+
+        const { excludePatterns } = await chrome.storage.sync.get(['excludePatterns']);
+        const patterns = excludePatterns || [];
+        const regexPatterns = patterns.map(pattern => new RegExp(pattern));
       
         const { container, progressBar, statusText } = createProgressUI();
         document.body.appendChild(container);
@@ -98,6 +95,7 @@ async function initFolderUpload() {
         let successCount = 0;
         let failCount = 0;
         let skippedCount = 0;
+        let excludedCount = 0;
       
         const rootFolder = files[0].webkitRelativePath.split('/')[0];
         const rootFolderRegex = new RegExp(`^${rootFolder}/`);
@@ -106,11 +104,17 @@ async function initFolderUpload() {
             const file = files[i];
             const relativePath = file.webkitRelativePath.replace(rootFolderRegex, '');
 
-            // Check if any part of the path starts with a dot
-            const shouldSkip = relativePath.split('/').some(part => part.startsWith('.'));
-            if (shouldSkip) {
+            const isDotFile = relativePath.split('/').some(part => part.startsWith('.'));
+            if (isDotFile) {
                 console.log(`Skipping dot file/folder: ${relativePath}`);
                 skippedCount++;
+                continue;
+            }
+
+            const isExcluded = regexPatterns.some(regex => regex.test(relativePath));
+            if (isExcluded) {
+                console.log(`Excluding file based on pattern: ${relativePath}`);
+                excludedCount++;
                 continue;
             }
             
@@ -121,22 +125,18 @@ async function initFolderUpload() {
                 await uploadFile(file, projectId, relativePath);
                 successCount++;
             } catch (error) {
-                console.error(`Failed to upload ${relativePath}:`, error);
+                console.log(`Failed to upload ${relativePath}:`, error);
                 failCount++;
             }
         }
       
         progressBar.style.width = '100%';
-        statusText.textContent = `Upload complete: ${successCount} successful, ${failCount} failed, ${skippedCount} skipped (dot files/folders)`;
-        
+        statusText.textContent = `Upload complete: ${successCount} successful, ${failCount} failed, ${skippedCount} skipped (dot files), ${excludedCount} excluded (patterns)`;        
         setTimeout(() => {
             window.location.href = window.location.href;
         }, 2000);
     });
     
-    // Handle remove all
-    // content.js
-    // Handle remove all
     removeButton.addEventListener('click', async () => {
         if (!organizationId) {
             await fetchOrganizationId();
@@ -154,7 +154,6 @@ async function initFolderUpload() {
             "Are you sure you want to remove all files? This action cannot be undone.",
             async () => {
                 try {
-                    // Fetch the list of documents
                     const response = await fetch(apiUrl, {
                         method: "GET",
                         headers: {
@@ -172,7 +171,6 @@ async function initFolderUpload() {
                     const documents = await response.json();
                     console.log("Documents fetched successfully:", documents);
 
-                    // Create progress indicator
                     const { container, progressBar, statusText } = createProgressUI();
                     document.body.appendChild(container);
                     statusText.textContent = 'Removing files...';
@@ -180,7 +178,6 @@ async function initFolderUpload() {
                     let successCount = 0;
                     let failCount = 0;
 
-                    // Iterate through the documents and delete each one
                     for (let i = 0; i < documents.length; i++) {
                         const doc = documents[i];
                         const deleteUrl = `${apiUrl}/${doc.uuid}`;
@@ -210,11 +207,9 @@ async function initFolderUpload() {
                             statusText.textContent = `Error removing file: ${doc.file_name}`;
                         }
 
-                        // Update progress
                         progressBar.style.width = `${Math.round((i + 1) / documents.length * 100)}%`;
                     }
 
-                    // Show final status
                     progressBar.style.width = '100%';
                     if (failCount > 0) {
                         statusText.textContent = `Removed ${successCount} files successfully. Failed to remove ${failCount} files.`;
@@ -222,7 +217,6 @@ async function initFolderUpload() {
                         statusText.textContent = `All ${successCount} files removed successfully.`;
                     }
 
-                    // Reload page after delay
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
@@ -235,7 +229,6 @@ async function initFolderUpload() {
                 }
             },
             () => {
-                // User cancelled, do nothing
                 console.log("File removal cancelled by user");
             }
         );
@@ -247,10 +240,8 @@ async function initFolderUpload() {
     document.body.appendChild(container);
 }
 
-// Initialize when page loads and when URL changes
 initFolderUpload();
 
-// Watch for URL changes
 let lastUrl = location.href;
 const observer = new MutationObserver(() => {
     const url = location.href;

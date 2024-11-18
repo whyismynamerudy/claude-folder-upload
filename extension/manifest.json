@@ -3,9 +3,14 @@
     "name": "Claude Folder Upload Helper",
     "version": "1.0.0",
     "description": "Upload folders to Claude while maintaining structure",
+    "icons": {
+        "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
+        "64": "icons/icon64.png",
+        "128": "icons/icon128.png"
+    },
     "permissions": [
-      "storage",
-      "activeTab"
+      "storage"
     ],
     "host_permissions": [
       "https://claude.ai/*"
@@ -18,7 +23,13 @@
       }
     ],
     "action": {
-      "default_popup": "options.html"
+      "default_popup": "options.html",
+      "default_icon": {
+            "16": "icons/icon16.png",
+            "32": "icons/icon32.png",
+            "64": "icons/icon64.png",
+            "128": "icons/icon128.png"
+        }
     },
     "options_ui": {
       "page": "options.html",
