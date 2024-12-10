@@ -1,7 +1,12 @@
 let organizationId = null;
 
 function isProjectPage() {
-  return window.location.pathname.includes('/project/');
+  // return window.location.pathname.includes('/project/');
+  const path = window.location.pathname;
+  // Split the path into segments
+  const segments = path.split('/').filter(Boolean);
+  // Check if we're in a project but not in a chat
+  return segments.includes('project') && !segments.includes('chat');
 }
 
 function showConfirmationDialog(message, onConfirm, onCancel) {

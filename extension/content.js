@@ -1,9 +1,24 @@
+function cleanupUploadUI() {
+    const existingContainer = document.getElementById('folder-upload-container');
+    if (existingContainer) {
+        existingContainer.remove();
+    }
+    const existingProgress = document.getElementById('folder-upload-progress');
+    if (existingProgress) {
+        existingProgress.remove();
+    }
+}
+
 async function initFolderUpload() {
+
+    cleanupUploadUI();
+
     if (!isProjectPage()) return;
   
     const projectId = window.location.pathname.split('/').pop();
     
     const container = document.createElement('div');
+    container.id = 'folder-upload-container';
     container.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -240,13 +255,39 @@ async function initFolderUpload() {
     document.body.appendChild(container);
 }
 
-initFolderUpload();
 
 let lastUrl = location.href;
-const observer = new MutationObserver(() => {
-    const url = location.href;
-    if (url !== lastUrl) {
-        lastUrl = url;
-        initFolderUpload();
+
+// Function to check URL changes
+function checkForUrlChange() {
+    const currentUrl = location.href;
+    if (currentUrl !== lastUrl) {
+        lastUrl = currentUrl;
+        cleanupUploadUI();
+        if (isProjectPage()) {
+            initFolderUpload();
+        }
     }
-}).observe(document, {subtree: true, childList: true});
+}
+
+const observer = new MutationObserver(() => {
+    checkForUrlChange();
+});
+
+observer.observe(document, {subtree: true, childList: true});
+
+window.addEventListener('popstate', checkForUrlChange);
+
+const pushState = history.pushState;
+history.pushState = function() {
+    pushState.apply(history, arguments);
+    checkForUrlChange();
+};
+
+const replaceState = history.replaceState;
+history.replaceState = function() {
+    replaceState.apply(history, arguments);
+    checkForUrlChange();
+};
+
+initFolderUpload();
