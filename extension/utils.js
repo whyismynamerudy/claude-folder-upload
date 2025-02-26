@@ -135,7 +135,7 @@ async function refreshUIAfterUpload() {
     window.location.reload();
   }
 
-async function uploadFile(file, projectId, relativePath) {
+  async function uploadFile(file, projectId, relativePath) {
     if (!organizationId) {
       await fetchOrganizationId();
     }
@@ -147,6 +147,9 @@ async function uploadFile(file, projectId, relativePath) {
       reader.onload = async () => {
         try {
           const content = reader.result;
+          
+          // Log more details about the file being processed
+          console.log(`Uploading: ${relativePath} (${file.type || 'unknown type'}, ${file.size} bytes)`);
           
           const response = await fetch(apiUrl, {
             method: 'POST',
@@ -163,19 +166,52 @@ async function uploadFile(file, projectId, relativePath) {
           });
   
           if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
+            const errorText = await response.text().catch(() => 'No error details');
+            throw new Error(`Upload failed: ${response.status} - ${errorText}`);
           }
   
           resolve(await response.json());
         } catch (error) {
+          console.error(`Error uploading ${relativePath}:`, error);
           reject(error);
         }
       };
   
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
+      reader.onerror = (e) => {
+        console.error(`Error reading file ${relativePath}:`, e);
+        reject(new Error(`Failed to read file: ${e.target.error}`));
+      };
+      
+      // Determine how to read the file based on its type
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        reject(new Error(`File too large: ${file.size} bytes`));
+        return;
+      }
+      
+      // For text files and common code files
+      const textTypes = [
+        'text/', '.js', '.ts', '.html', '.css', '.json', '.md', '.txt', 
+        '.jsx', '.tsx', '.py', '.java', '.c', '.cpp', '.h', '.cs', 
+        '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sh', 
+        '.bat', '.ps1', '.yml', '.yaml', '.toml', '.xml'
+      ];
+      
+      // Check if file should be read as text
+      const shouldReadAsText = textTypes.some(type => 
+        (file.type && file.type.includes(type)) || 
+        relativePath.toLowerCase().endsWith(type)
+      );
+      
+      // Use appropriate reading method
+      if (shouldReadAsText) {
+        reader.readAsText(file);
+      } else {
+        // Try to read as text anyway for other file types
+        // Claude.ai API expects text content
+        reader.readAsText(file);
+      }
     });
-  }
+}
 
 
   async function storeFileData(projectId, fileName, filePath) {

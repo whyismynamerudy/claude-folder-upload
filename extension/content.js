@@ -10,7 +10,6 @@ function cleanupUploadUI() {
 }
 
 async function initFolderUpload() {
-
     cleanupUploadUI();
 
     if (!isProjectPage()) return;
@@ -100,6 +99,9 @@ async function initFolderUpload() {
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
 
+        // Debug log all files to help diagnose issues
+        console.log('All files selected:', files.map(f => f.webkitRelativePath));
+
         const { excludePatterns } = await chrome.storage.sync.get(['excludePatterns']);
         const patterns = excludePatterns || [];
         const regexPatterns = patterns.map(pattern => new RegExp(pattern));
@@ -111,13 +113,48 @@ async function initFolderUpload() {
         let failCount = 0;
         let skippedCount = 0;
         let excludedCount = 0;
+        
+        // Track folders for debugging
+        const processedFolders = new Set();
+        const excludedFolders = new Set();
+        const failedFolders = new Set();
       
         const rootFolder = files[0].webkitRelativePath.split('/')[0];
         const rootFolderRegex = new RegExp(`^${rootFolder}/`);
-    
+        
+        // Create a folder structure map to ensure all directories are processed
+        const folderStructure = {};
+        files.forEach(file => {
+            const path = file.webkitRelativePath.replace(rootFolderRegex, '');
+            const parts = path.split('/');
+            
+            // Build the folder structure
+            let current = folderStructure;
+            for (let i = 0; i < parts.length - 1; i++) {
+                const part = parts[i];
+                if (!current[part]) {
+                    current[part] = {};
+                }
+                current = current[part];
+            }
+        });
+        
+        console.log("Folder structure:", folderStructure);
+        
+        // Limit concurrent uploads to avoid overwhelming the API
+        const MAX_CONCURRENT_UPLOADS = 7;
+        let activeUploads = 0;
+        
+        // Process files with throttling
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const relativePath = file.webkitRelativePath.replace(rootFolderRegex, '');
+            
+            // Track folder processing
+            const folderPath = relativePath.split('/').slice(0, -1).join('/');
+            if (folderPath) {
+                processedFolders.add(folderPath);
+            }
 
             const isDotFile = relativePath.split('/').some(part => part.startsWith('.'));
             if (isDotFile) {
@@ -126,7 +163,14 @@ async function initFolderUpload() {
                 continue;
             }
 
-            const isExcluded = regexPatterns.some(regex => regex.test(relativePath));
+            const isExcluded = regexPatterns.some(regex => {
+                const matches = regex.test(relativePath);
+                if (matches && folderPath) {
+                    excludedFolders.add(folderPath);
+                }
+                return matches;
+            });
+            
             if (isExcluded) {
                 console.log(`Excluding file based on pattern: ${relativePath}`);
                 excludedCount++;
@@ -134,22 +178,68 @@ async function initFolderUpload() {
             }
             
             try {
+                // Throttle uploads to prevent overwhelming the API
+                while (activeUploads >= MAX_CONCURRENT_UPLOADS) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                activeUploads++;
                 statusText.textContent = `Uploading: ${relativePath}`;
                 progressBar.style.width = `${Math.round((i / files.length) * 100)}%`;
                 
-                await uploadFile(file, projectId, relativePath);
+                const result = await uploadFile(file, projectId, relativePath);
+                console.log(`Successfully uploaded: ${relativePath}`, result);
                 successCount++;
             } catch (error) {
-                console.log(`Failed to upload ${relativePath}:`, error);
+                console.error(`Failed to upload ${relativePath}:`, error);
+                if (folderPath) {
+                    failedFolders.add(folderPath);
+                }
                 failCount++;
+            } finally {
+                activeUploads--;
             }
         }
+        
+        // Log folder tracking results
+        console.log("Processed folders:", Array.from(processedFolders));
+        console.log("Excluded folders:", Array.from(excludedFolders));
+        console.log("Failed folders:", Array.from(failedFolders));
       
         progressBar.style.width = '100%';
-        statusText.textContent = `Upload complete: ${successCount} successful, ${failCount} failed, ${skippedCount} skipped (dot files), ${excludedCount} excluded (patterns)`;        
+        statusText.textContent = `Upload complete: ${successCount} successful, ${failCount} failed, ${skippedCount} skipped (dot files), ${excludedCount} excluded (patterns)`;
+        
+        // Wait for all uploads to complete
+        while (activeUploads > 0) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // Add a diagnostic button to show information about upload issues
+        if (failCount > 0 || excludedCount > 0) {
+            const diagButton = document.createElement('button');
+            diagButton.textContent = "Show Details";
+            diagButton.style.cssText = `
+                background: #4a4a47;
+                color: #f0f0f0;
+                padding: 4px 8px;
+                border-radius: 4px;
+                border: none;
+                cursor: pointer;
+                margin-top: 8px;
+                font-size: 12px;
+            `;
+            diagButton.onclick = () => {
+                alert(`
+Failed folders: ${Array.from(failedFolders).join(', ')}
+Excluded folders: ${Array.from(excludedFolders).join(', ')}
+                `);
+            };
+            container.appendChild(diagButton);
+        }
+        
         setTimeout(() => {
             window.location.href = window.location.href;
-        }, 2000);
+        }, 3000);
     });
     
     removeButton.addEventListener('click', async () => {
