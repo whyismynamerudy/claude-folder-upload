@@ -19,7 +19,7 @@ A Chrome extension that enhances Claude.ai's file management capabilities by ena
 ## Installation
 
 ### From Chrome Web Store
-*(Coming soon)*
+[Chrome Web Store](https://chromewebstore.google.com/detail/claude-folder-upload-help/kpdeinalphndoobebbkdjhokedpgalad)
 
 ### Manual Installation
 1. Clone this repository
