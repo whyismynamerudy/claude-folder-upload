@@ -1,4 +1,4 @@
-# Claude Folder Upload Helper
+# Claude Folder Upload
 
 A Chrome extension that enhances Claude.ai's file management capabilities by enabling folder uploads while maintaining directory structure. This extension also provides features for managing file exclusions and bulk file removal.
 
@@ -96,5 +96,5 @@ This will create a ZIP file suitable for uploading to the Chrome Web Store.
 ## Support
 
 For bugs, feature requests, or questions:
-- [Open an issue](https://github.com/whyismynamerudy/claude-folder-upload-helper/issues) using one of our templates
-- [Submit a pull request](https://github.com/whyismynamerudy/claude-folder-upload-helper/pulls) with your proposed changes
+- [Open an issue](https://github.com/whyismynamerudy/claude-folder-upload/issues) using one of our templates
+- [Submit a pull request](https://github.com/whyismynamerudy/claude-folder-upload/pulls) with your proposed changes

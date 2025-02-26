@@ -2,7 +2,7 @@
 
 # Set directory variables
 EXTENSION_DIR="extension"
-OUTPUT_NAME="claude-folder-upload-helper.zip"
+OUTPUT_NAME="claude-folder-upload.zip"
 
 # Navigate to the directory containing the extension folder
 cd "$(dirname "$0")"
