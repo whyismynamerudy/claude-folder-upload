@@ -1,0 +1,9 @@
+# This is a CODEOWNERS file that defines code ownership for this repository
+# @whyismynamerudy will be the default owner for everything in the repo
+
+# Default owner for everything
+* @whyismynamerudy
+
+# Also explicitly own all files in these directories
+/extension/ @whyismynamerudy
+/.github/ @whyismynamerudy
