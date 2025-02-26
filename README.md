@@ -3,6 +3,9 @@
 A Chrome extension that enhances Claude.ai's file management capabilities by enabling folder uploads while maintaining directory structure. This extension also provides features for managing file exclusions and bulk file removal.
 
 ![Chrome Web Store](https://img.shields.io/badge/Platform-Chrome-brightgreen.svg)
+[![GitHub issues](https://img.shields.io/github/issues/whyismynamerudy/claude-folder-upload-helper)](https://github.com/whyismynamerudy/claude-folder-upload-helper/issues)
+[![GitHub stars](https://img.shields.io/github/stars/whyismynamerudy/claude-folder-upload-helper)](https://github.com/whyismynamerudy/claude-folder-upload-helper/stargazers)
+[![GitHub license](https://img.shields.io/github/license/whyismynamerudy/claude-folder-upload-helper)](https://github.com/whyismynamerudy/claude-folder-upload-helper/blob/main/LICENSE)
 
 ## Features
 
@@ -12,6 +15,17 @@ A Chrome extension that enhances Claude.ai's file management capabilities by ena
 - 🗑️ **Bulk Removal**: Remove all files from a project with one click
 - 📊 **Progress Tracking**: Real-time progress indication for uploads and removals
 - 🎨 **Modern UI**: Clean, intuitive interface that matches Claude.ai's design
+
+## Installation
+
+### From Chrome Web Store
+*(Coming soon)*
+
+### Manual Installation
+1. Clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode" (toggle in the top right)
+4. Click "Load unpacked" and select the `extension` folder from the cloned repository
 
 ## Usage
 
@@ -43,6 +57,20 @@ Default exclusions include:
 2. Confirm the deletion in the dialog
 3. Wait for the removal process to complete
 
+## Contributing
+
+Contributions are welcome! Please check out our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started.
+
+### Issue Templates
+
+When creating a new issue, please use the appropriate template:
+- **Bug Report**: For reporting bugs or unexpected behavior
+- **Feature Request**: For suggesting new features or improvements
+
+### Pull Requests
+
+Please use the provided pull request template when submitting changes. This helps maintain consistency and provides important information about your contribution.
+
 ## Security
 
 This extension only requests necessary permissions:
@@ -51,6 +79,22 @@ This extension only requests necessary permissions:
 
 No data is collected or transmitted outside of Claude.ai's official API endpoints.
 
+## Development
+
+To build the extension package for distribution:
+
+```bash
+./package.sh
+```
+
+This will create a ZIP file suitable for uploading to the Chrome Web Store.
+
+## License
+
+[MIT License](LICENSE)
+
 ## Support
 
-For bugs, feature requests, or questions, please [open an issue](https://github.com/yourusername/claude-folder-upload/issues).
+For bugs, feature requests, or questions:
+- [Open an issue](https://github.com/whyismynamerudy/claude-folder-upload-helper/issues) using one of our templates
+- [Submit a pull request](https://github.com/whyismynamerudy/claude-folder-upload-helper/pulls) with your proposed changes
