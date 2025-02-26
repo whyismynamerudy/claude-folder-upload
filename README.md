@@ -3,9 +3,9 @@
 A Chrome extension that enhances Claude.ai's file management capabilities by enabling folder uploads while maintaining directory structure. This extension also provides features for managing file exclusions and bulk file removal.
 
 ![Chrome Web Store](https://img.shields.io/badge/Platform-Chrome-brightgreen.svg)
-[![GitHub issues](https://img.shields.io/github/issues/whyismynamerudy/claude-folder-upload-helper)](https://github.com/whyismynamerudy/claude-folder-upload-helper/issues)
-[![GitHub stars](https://img.shields.io/github/stars/whyismynamerudy/claude-folder-upload-helper)](https://github.com/whyismynamerudy/claude-folder-upload-helper/stargazers)
-[![GitHub license](https://img.shields.io/github/license/whyismynamerudy/claude-folder-upload-helper)](https://github.com/whyismynamerudy/claude-folder-upload-helper/blob/main/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/whyismynamerudy/claude-folder-upload)](https://github.com/whyismynamerudy/claude-folder-upload/issues)
+[![GitHub stars](https://img.shields.io/github/stars/whyismynamerudy/claude-folder-upload)](https://github.com/whyismynamerudy/claude-folder-upload/stargazers)
+[![GitHub license](https://img.shields.io/github/license/whyismynamerudy/claude-folder-upload)](https://github.com/whyismynamerudy/claude-folder-upload/blob/main/LICENSE)
 
 ## Features
 
