@@ -1,3 +1,45 @@
+async function initializeExcludePatterns() {
+    const defaultPatterns = [
+        '\\.(?:jpg|jpeg|png|gif|svg|ico|webp|bmp)$',
+        '\\.(?:woff|woff2|eot|ttf|otf)$',
+        '.*node_modules.*',
+        'package-lock\\.json$',
+        'yarn\\.lock$',
+        '\\.config\\.[^/]+$',
+        '\\.eslintrc(?:\\.[^/]+)?$',
+        '\\.prettierrc(?:\\.[^/]+)?$',
+        '\\.babelrc(?:\\.[^/]+)?$',
+        '/dist/',
+        '/build/',
+        '/out/',
+        '^dist/',
+        '^build/',
+        '^out/',
+        'dist$',
+        'build$',
+        'out$',
+        '\\.cache(?:/|$)',
+        '\\.git(?:/|$)',
+        '\\.svn(?:/|$)',
+        '\\.vscode(?:/|$)',
+        '\\.idea(?:/|$)',
+        '\\.DS_Store$',
+        'Thumbs\\.db$'
+    ];
+
+    // Check if patterns exist in storage
+    const { excludePatterns } = await chrome.storage.sync.get(['excludePatterns']);
+    
+    // If no patterns exist, initialize with defaults
+    if (!excludePatterns || excludePatterns.length === 0) {
+        await chrome.storage.sync.set({ excludePatterns: defaultPatterns });
+        console.log('Initialized default exclude patterns');
+        return defaultPatterns;
+    }
+    
+    return excludePatterns;
+}
+
 function cleanupUploadUI() {
     const existingContainer = document.getElementById('folder-upload-container');
     if (existingContainer) {
@@ -95,16 +137,30 @@ async function initFolderUpload() {
     });
 
     uploadButton.onclick = () => fileInput.click();
+    
     fileInput.addEventListener('change', async (event) => {
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
 
+        console.log('Selected files count:', files.length);
         // Debug log all files to help diagnose issues
         console.log('All files selected:', files.map(f => f.webkitRelativePath));
 
-        const { excludePatterns } = await chrome.storage.sync.get(['excludePatterns']);
-        const patterns = excludePatterns || [];
-        const regexPatterns = patterns.map(pattern => new RegExp(pattern));
+        // Get patterns, initializing if necessary
+        const patterns = await initializeExcludePatterns();
+        console.log('Loaded exclusion patterns:', patterns);
+        
+        // Compile all patterns into RegExp objects - make them case insensitive
+        const regexPatterns = patterns.map(pattern => {
+            try {
+                return new RegExp(pattern, 'i');
+            } catch (error) {
+                console.error(`Invalid regex pattern: ${pattern}`, error);
+                return null;
+            }
+        }).filter(Boolean);
+        
+        console.log(`Compiled ${regexPatterns.length} valid regex patterns`);
       
         const { container, progressBar, statusText } = createProgressUI();
         document.body.appendChild(container);
@@ -140,42 +196,50 @@ async function initFolderUpload() {
         });
         
         console.log("Folder structure:", folderStructure);
-        
-        // Limit concurrent uploads to avoid overwhelming the API
-        const MAX_CONCURRENT_UPLOADS = 7;
-        let activeUploads = 0;
-        
-        // Process files with throttling
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+
+        // Create filtered files array first
+        const filesToUpload = files.filter(file => {
             const relativePath = file.webkitRelativePath.replace(rootFolderRegex, '');
-            
-            // Track folder processing
             const folderPath = relativePath.split('/').slice(0, -1).join('/');
+            
             if (folderPath) {
                 processedFolders.add(folderPath);
             }
-
+            
+            // Skip dot files/folders
             const isDotFile = relativePath.split('/').some(part => part.startsWith('.'));
             if (isDotFile) {
                 console.log(`Skipping dot file/folder: ${relativePath}`);
                 skippedCount++;
-                continue;
+                return false;
             }
 
-            const isExcluded = regexPatterns.some(regex => {
-                const matches = regex.test(relativePath);
-                if (matches && folderPath) {
-                    excludedFolders.add(folderPath);
+            // Check against all regex patterns
+            for (const regex of regexPatterns) {
+                if (regex.test(relativePath)) {
+                    console.log(`Excluded by pattern '${regex}': ${relativePath}`);
+                    if (folderPath) {
+                        excludedFolders.add(folderPath);
+                    }
+                    excludedCount++;
+                    return false;
                 }
-                return matches;
-            });
-            
-            if (isExcluded) {
-                console.log(`Excluding file based on pattern: ${relativePath}`);
-                excludedCount++;
-                continue;
             }
+
+            return true;
+        });
+
+        console.log(`After filtering: ${filesToUpload.length} files to upload`);
+
+        // Limit concurrent uploads to avoid overwhelming the API
+        const MAX_CONCURRENT_UPLOADS = 5;
+        let activeUploads = 0;
+
+        // Now process the filtered files with throttling
+        for (let i = 0; i < filesToUpload.length; i++) {
+            const file = filesToUpload[i];
+            const relativePath = file.webkitRelativePath.replace(rootFolderRegex, '');
+            const folderPath = relativePath.split('/').slice(0, -1).join('/');
             
             try {
                 // Throttle uploads to prevent overwhelming the API
@@ -184,11 +248,11 @@ async function initFolderUpload() {
                 }
                 
                 activeUploads++;
-                statusText.textContent = `Uploading: ${relativePath}`;
-                progressBar.style.width = `${Math.round((i / files.length) * 100)}%`;
+                statusText.textContent = `Uploading (${i + 1}/${filesToUpload.length}): ${relativePath}`;
+                progressBar.style.width = `${Math.round((i / filesToUpload.length) * 100)}%`;
                 
-                const result = await uploadFile(file, projectId, relativePath);
-                console.log(`Successfully uploaded: ${relativePath}`, result);
+                await uploadFile(file, projectId, relativePath);
+                console.log(`Successfully uploaded: ${relativePath}`);
                 successCount++;
             } catch (error) {
                 console.error(`Failed to upload ${relativePath}:`, error);
@@ -200,14 +264,16 @@ async function initFolderUpload() {
                 activeUploads--;
             }
         }
-        
+
         // Log folder tracking results
         console.log("Processed folders:", Array.from(processedFolders));
         console.log("Excluded folders:", Array.from(excludedFolders));
         console.log("Failed folders:", Array.from(failedFolders));
       
         progressBar.style.width = '100%';
-        statusText.textContent = `Upload complete: ${successCount} successful, ${failCount} failed, ${skippedCount} skipped (dot files), ${excludedCount} excluded (patterns)`;
+        const totals = `${successCount} successful, ${failCount} failed, ${skippedCount} skipped (dot files), ${excludedCount} excluded (patterns)`;
+        statusText.textContent = `Upload complete: ${totals}`;
+        console.log(`Upload summary: ${totals}`);
         
         // Wait for all uploads to complete
         while (activeUploads > 0) {
@@ -344,7 +410,6 @@ Excluded folders: ${Array.from(excludedFolders).join(', ')}
     container.appendChild(fileInput);
     document.body.appendChild(container);
 }
-
 
 let lastUrl = location.href;
 

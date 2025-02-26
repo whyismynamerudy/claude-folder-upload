@@ -5,7 +5,7 @@ const defaultPatterns = [
 
     '\\.(?:woff|woff2|eot|ttf|otf)$',  // Common font file formats
     
-    'node_modules(?:/|$)',          // node_modules folder or its contents
+    '.*node_modules.*',          // node_modules folder or its contents
     'package-lock\\.json$',         // package-lock.json files
     'yarn\\.lock$',                 // yarn.lock files
     
@@ -13,9 +13,17 @@ const defaultPatterns = [
     '\\.eslintrc(?:\\.[^/]+)?$',   // ESLint config files
     '\\.prettierrc(?:\\.[^/]+)?$', // Prettier config files
     '\\.babelrc(?:\\.[^/]+)?$',    // Babel config files
-    
-    '(?:dist|build|out)(?:/|$)',   // Build folders
     '\\.cache(?:/|$)',             // Cache folders
+
+    '/dist/',
+    '/build/',
+    '/out/',
+    '^dist/',
+    '^build/',
+    '^out/',
+    'dist$',
+    'build$',
+    'out$',
     
     '\\.git(?:/|$)',               // Git folders
     '\\.svn(?:/|$)',               // SVN folders
